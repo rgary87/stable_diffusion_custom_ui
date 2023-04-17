@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="UTF-8">
+	<title>WebSocket Example</title>
+	<script src="https://cdn.socket.io/4.6.0/socket.io.min.js"
+		integrity="sha384-c79GN5VsunZvi+Q/WObgk2in0CbZsHnjEqvFxC5DxHn9lTfNce2WW6h2pH6u/kF+"
+		crossorigin="anonymous"></script>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet"
+		integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"
+		integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe"
+		crossorigin="anonymous"></script>
+	<script>
+		var socket = io.connect('http://localhost:8000');
+		function sendMessage() {
+			var prompt = document.getElementById("prompt").value;
+			var negative = document.getElementById("negative").value;
+			var seed = document.getElementById("seed").value;
+			var step_count = document.getElementById("step-count").value;
+			var generate_count = document.getElementById("generator-count").value;
+			socket.emit("message", JSON.stringify(
+				{
+					"prompt": prompt,
+					"negative": negative,
+					"seed": seed,
+					"step_count": step_count,
+					"generate_count": generate_count
+				}
+			));
+
+			var imagesBlock = document.getElementById('images');
+			while (imagesBlock.firstChild) {
+				imagesBlock.removeChild(imagesBlock.firstChild);
+			}
+			const loadingDiv = document.createElement('div');
+			loadingDiv.id = 'loadingDiv';
+			loadingDiv.classList = 'd-flex align-items-center justify-content-center';
+			const spinner = document.createElement('div');
+			spinner.classList = 'spinner-border text-primary';
+			spinner.setAttribute('role', 'status');
+			const spanLoading = document.createElement('span');
+			spanLoading.classList = 'visually-hidden';
+			spanLoading.textContent = 'Loading...';
+			loadingDiv.appendChild(spinner);
+			spinner.appendChild(spanLoading);
+			imagesBlock.appendChild(loadingDiv);
+		}
+
+		socket.on('open', function (event) {
+			console.log("WebSocket connected");
+		});
+
+		socket.on('close', function (event) {
+			console.log("WebSocket closed");
+		});
+
+		socket.on('error', function (event) {
+			console.log("WebSocket error: ${event}");
+		});
+
+		socket.on('message', function (message) {
+			// console.log("Message: "+message);
+			var messageImg = document.createElement('img');
+			messageImg.src = 'data:image/jpeg;base64,' + message
+			var imagesBlock = document.getElementById('images');
+			var loadingDiv = document.getElementById('loadingDiv');
+			if (loadingDiv != null) {
+				loadingDiv.parentNode.removeChild(loadingDiv);
+			}
+			imagesBlock.appendChild(messageImg);
+		});
+
+		document.addEventListener('DOMContentLoaded', function () {
+			const generatorCountInput = document.getElementById('generator-count');
+			const generatorCountDisplay = document.getElementById('generator-count-display');
+			generatorCountInput.addEventListener('input', () => {
+				generatorCountDisplay.textContent = generatorCountInput.value;
+			});
+		});
+	</script>
+</head>
+
+<body>
+	<!-- <label for="prompt">Prompt:</label>
+	<input type="text" id="prompt"><br><br>
+	<label for="negative">Negative:</label>
+	<input type="text" id="negative"><br><br>
+	<button onclick="sendMessage()">Generate</button> -->
+
+	<div class="container-fluid">
+		<form>
+			<div class="row">
+				<div class="col-md-6">
+					<div class="form-group">
+						<label for="prompt">Prompt</label>
+						<input type="text" class="form-control" id="prompt">
+					</div>
+					<div class="form-group">
+						<label for="negative">Negative</label>
+						<input type="text" class="form-control" id="negative">
+					</div>
+					<div class="form-group">
+						<label for="seed">Seed</label>
+						<input type="number" class="form-control" id="seed">
+					</div>
+					<div class="form-group">
+						<label for="step-count">Step Count</label>
+						<input type="number" class="form-control" id="step-count" value="60">
+					</div>
+				</div>
+				<div class="form-group">
+					<div class="col-md-6">
+						<label for="generator-count">Generator Count</label>
+						<input type="range" class="form-control-range" id="generator-count" min="1" max="10" value="4">
+						<span id="generator-count-display">4</span>
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-12">
+					<button type="button" class="btn btn-primary btn-block" onclick="sendMessage()">Generate</button>
+				</div>
+			</div>
+		</form>
+	</div>
+
+	<div id="images"></div>
+</body>
+
+</html>
