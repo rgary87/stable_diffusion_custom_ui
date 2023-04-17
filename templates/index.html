@@ -13,7 +13,7 @@
 		integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe"
 		crossorigin="anonymous"></script>
 	<script>
-		var socket = io.connect('http://localhost:8000');
+		var socket = io.connect(window.location.href);
 		var current_to_gen = 0;
 
 		function createLoadingImage() {
@@ -30,7 +30,7 @@
 			spinner.appendChild(spanLoading);
 			return loadingDiv;
 		}
-		
+
 		function sendMessage() {
 			var prompt = document.getElementById("prompt").value;
 			var negative = document.getElementById("negative").value;
@@ -71,24 +71,32 @@
 		});
 
 		socket.on('message', function (message) {
-			// console.log("Message: "+message);
-			current_to_gen -= 1;
-			var image = 'data:image/jpeg;base64,' + message;
-			var downloadA = document.createElement('a');
-			downloadA.href = image;
-			var messageImg = document.createElement('img');
-			messageImg.src = image;
-			messageImg.style = 'margin: 2px';
-			downloadA.appendChild(messageImg);
-			var imagesBlock = document.getElementById('images');
-			var loadingDiv = document.getElementById('loadingDiv');
-			if (loadingDiv != null) {
-				loadingDiv.parentNode.removeChild(loadingDiv);
+			if (message.image != '') {
+				current_to_gen -= 1;
+				var image = 'data:image/jpeg;base64,' + message.image;
+				var downloadA = document.createElement('a');
+				downloadA.href = image;
+				var messageImg = document.createElement('img');
+				messageImg.src = image;
+				messageImg.style = 'margin: 2px';
+				downloadA.appendChild(messageImg);
+				var imagesBlock = document.getElementById('images');
+				var loadingDiv = document.getElementById('loadingDiv');
+				if (loadingDiv != null) {
+					loadingDiv.parentNode.removeChild(loadingDiv);
+				}
+				imagesBlock.appendChild(downloadA);
+				if (current_to_gen > 0) {
+					imagesBlock.appendChild(loadingDiv);
+				}
 			}
-			imagesBlock.appendChild(downloadA);
-			if (current_to_gen > 0) {
-				imagesBlock.appendChild(loadingDiv);
+			var divQueueInfoDiv = document.getElementById('queue_length_info')
+			while (divQueueInfoDiv.firstChild) {
+				divQueueInfoDiv.removeChild(divQueueInfoDiv.firstChild)
 			}
+			var queueInfoSpan = document.createElement('span')
+			queueInfoSpan.textContent = "Messages in queue: " + message.queue_length
+			divQueueInfoDiv.appendChild(queueInfoSpan)
 		});
 
 		document.addEventListener('DOMContentLoaded', function () {
@@ -98,16 +106,11 @@
 				generatorCountDisplay.textContent = generatorCountInput.value;
 			});
 		});
+
 	</script>
 </head>
 
 <body>
-	<!-- <label for="prompt">Prompt:</label>
-	<input type="text" id="prompt"><br><br>
-	<label for="negative">Negative:</label>
-	<input type="text" id="negative"><br><br>
-	<button onclick="sendMessage()">Generate</button> -->
-
 	<div class="container-fluid">
 		<form>
 			<div class="row">
@@ -162,9 +165,10 @@
 				</div>
 			</div>
 			<div class="row">
-				<div class="col-md-12">
+				<div class="col-md-6">
 					<button type="button" class="btn btn-primary btn-block" onclick="sendMessage()">Generate</button>
 				</div>
+				<div class="col-md-6" id="queue_length_info"><span>Messages in queue: ?</span></div>
 			</div>
 		</form>
 

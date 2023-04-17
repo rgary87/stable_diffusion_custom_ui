@@ -3,6 +3,7 @@ Flask-SocketIO==5.3.3
 diffusers==0.15.0
 transformers==4.28.1
 accelerate==0.18.0
+simple-websocket==0.10.0
 
 --extra-index-url https://download.pytorch.org/whl/cu118
 torch==2.0.0
