@@ -14,12 +14,33 @@
 		crossorigin="anonymous"></script>
 	<script>
 		var socket = io.connect('http://localhost:8000');
+		var current_to_gen = 0;
+
+		function createLoadingImage() {
+			const loadingDiv = document.createElement('div');
+			loadingDiv.id = 'loadingDiv';
+			loadingDiv.classList = 'd-flex align-items-center justify-content-center col-md-4';
+			const spinner = document.createElement('div');
+			spinner.classList = 'spinner-border text-primary';
+			spinner.setAttribute('role', 'status');
+			const spanLoading = document.createElement('span');
+			spanLoading.classList = 'visually-hidden';
+			spanLoading.textContent = 'Loading...';
+			loadingDiv.appendChild(spinner);
+			spinner.appendChild(spanLoading);
+			return loadingDiv;
+		}
+		
 		function sendMessage() {
 			var prompt = document.getElementById("prompt").value;
 			var negative = document.getElementById("negative").value;
+			if (document.getElementById('basicNeg').checked) {
+				negative += ', disfigured, kitschy, ugly, oversaturated, low-res, deformed, blurry, extra lib, too many fingers'
+			}
 			var seed = document.getElementById("seed").value;
 			var step_count = document.getElementById("step-count").value;
 			var generate_count = document.getElementById("generator-count").value;
+			current_to_gen = generate_count;
 			socket.emit("message", JSON.stringify(
 				{
 					"prompt": prompt,
@@ -34,18 +55,7 @@
 			while (imagesBlock.firstChild) {
 				imagesBlock.removeChild(imagesBlock.firstChild);
 			}
-			const loadingDiv = document.createElement('div');
-			loadingDiv.id = 'loadingDiv';
-			loadingDiv.classList = 'd-flex align-items-center justify-content-center';
-			const spinner = document.createElement('div');
-			spinner.classList = 'spinner-border text-primary';
-			spinner.setAttribute('role', 'status');
-			const spanLoading = document.createElement('span');
-			spanLoading.classList = 'visually-hidden';
-			spanLoading.textContent = 'Loading...';
-			loadingDiv.appendChild(spinner);
-			spinner.appendChild(spanLoading);
-			imagesBlock.appendChild(loadingDiv);
+			imagesBlock.appendChild(createLoadingImage());
 		}
 
 		socket.on('open', function (event) {
@@ -62,14 +72,23 @@
 
 		socket.on('message', function (message) {
 			// console.log("Message: "+message);
+			current_to_gen -= 1;
+			var image = 'data:image/jpeg;base64,' + message;
+			var downloadA = document.createElement('a');
+			downloadA.href = image;
 			var messageImg = document.createElement('img');
-			messageImg.src = 'data:image/jpeg;base64,' + message
+			messageImg.src = image;
+			messageImg.style = 'margin: 2px';
+			downloadA.appendChild(messageImg);
 			var imagesBlock = document.getElementById('images');
 			var loadingDiv = document.getElementById('loadingDiv');
 			if (loadingDiv != null) {
 				loadingDiv.parentNode.removeChild(loadingDiv);
 			}
-			imagesBlock.appendChild(messageImg);
+			imagesBlock.appendChild(downloadA);
+			if (current_to_gen > 0) {
+				imagesBlock.appendChild(loadingDiv);
+			}
 		});
 
 		document.addEventListener('DOMContentLoaded', function () {
@@ -92,29 +111,53 @@
 	<div class="container-fluid">
 		<form>
 			<div class="row">
-				<div class="col-md-6">
+				<div class="col-md-12">
 					<div class="form-group">
 						<label for="prompt">Prompt</label>
-						<input type="text" class="form-control" id="prompt">
+						<input type="text" class="form-control" id="prompt"
+							value="DSLR photo portrait of an amazing looking man in front of a computer, working on some matrix style code">
 					</div>
+				</div>
+				<div class="col-md-12">
 					<div class="form-group">
 						<label for="negative">Negative</label>
-						<input type="text" class="form-control" id="negative">
+						<input type="text" class="form-control" id="negative"
+							value="artwork, painting, black and white">
 					</div>
-					<div class="form-group">
-						<label for="seed">Seed</label>
-						<input type="number" class="form-control" id="seed">
+				</div>
+
+			</div>
+			<div class="row">
+				<div class="col-md-6">
+					<div class="form-check">
+						<input type="checkbox" class="form-check-input" id="basicNeg" checked>
+						<label for="basicNeg">Include basic negative [extra-lib, too many finger, etc.]</label>
 					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-6">
 					<div class="form-group">
 						<label for="step-count">Step Count</label>
 						<input type="number" class="form-control" id="step-count" value="60">
 					</div>
 				</div>
-				<div class="form-group">
-					<div class="col-md-6">
-						<label for="generator-count">Generator Count</label>
-						<input type="range" class="form-control-range" id="generator-count" min="1" max="10" value="4">
-						<span id="generator-count-display">4</span>
+				<div class="col-md-6">
+					<div class="form-group">
+						<label for="seed">Seed</label>
+						<input type="number" class="form-control" id="seed">
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-6">
+					<div class="form-group">
+						<div class="col-md-6">
+							<label for="generator-count">Generator Count</label>
+							<input type="range" class="form-control-range" id="generator-count" min="1" max="10"
+								value="4">
+							<span id="generator-count-display">4</span>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -124,9 +167,13 @@
 				</div>
 			</div>
 		</form>
+
+		<div class="row" style="margin-top: 10;">
+			<div id="images"></div>
+		</div>
 	</div>
 
-	<div id="images"></div>
+
 </body>
 
 </html>
