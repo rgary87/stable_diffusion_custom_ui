@@ -4,7 +4,7 @@ import json
 import random
 import generator
 import base64
-from flask import Flask, render_template
+from flask import Flask, render_template, send_from_directory
 import flask_socketio as fs
 from flask_socketio import SocketIO
 
@@ -51,13 +51,26 @@ def process_queue(message):
         if not gen:
             gen = generator.Generator()
         for idx in range(0, to_generate):
-            image_path = gen.generate_single(prompt=prompt, negative_prompt=negative, step=steps, seed=seed, dir_path=dir_path, idx=idx)
+            if queue_length <= 0:
+                queue_length = 0
+                break
+            (image_path, image_seed) = gen.generate_single(prompt=prompt, negative_prompt=negative, step=steps, seed=seed, dir_path=dir_path, idx=idx)
             with open(image_path, "rb") as f:
                 image_data = f.read()
             image64 = base64.b64encode(image_data).decode('utf-8')
             queue_length -= 1
-            fs.send({'image': image64, 'queue_length': queue_length})
+            fs.send({'image': image64, 'image_seed': image_seed, 'queue_length': queue_length})
             broadcast_queue_lenght()
+    if queue_length <= 0:
+        queue_length = 0
+
+@app.route('/static/js/<path:path>')
+def send_js(path):
+    return send_from_directory('static/js', path)
+
+@app.route('/static/css/<path:path>')
+def send_css(path):
+    return send_from_directory('static/css', path)
 
 @app.route('/')
 def index():
@@ -76,6 +89,12 @@ def handle_disconnect():
 def handle_message(message):
     broadcast_queue_lenght()
     process_queue(message=message)
+
+@socketio.on('clear')
+def handle_clear_queue():
+    global queue_length
+    queue_length = 0
+    broadcast_queue_lenght()
 
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', port=8000, debug=True)

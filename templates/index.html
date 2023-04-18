@@ -12,102 +12,11 @@
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"
 		integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe"
 		crossorigin="anonymous"></script>
-	<script>
-		var socket = io.connect(window.location.href);
-		var current_to_gen = 0;
-
-		function createLoadingImage() {
-			const loadingDiv = document.createElement('div');
-			loadingDiv.id = 'loadingDiv';
-			loadingDiv.classList = 'd-flex align-items-center justify-content-center col-md-4';
-			const spinner = document.createElement('div');
-			spinner.classList = 'spinner-border text-primary';
-			spinner.setAttribute('role', 'status');
-			const spanLoading = document.createElement('span');
-			spanLoading.classList = 'visually-hidden';
-			spanLoading.textContent = 'Loading...';
-			loadingDiv.appendChild(spinner);
-			spinner.appendChild(spanLoading);
-			return loadingDiv;
-		}
-
-		function sendMessage() {
-			var prompt = document.getElementById("prompt").value;
-			var negative = document.getElementById("negative").value;
-			if (document.getElementById('basicNeg').checked) {
-				negative += ', disfigured, kitschy, ugly, oversaturated, low-res, deformed, blurry, extra lib, too many fingers'
-			}
-			var seed = document.getElementById("seed").value;
-			var step_count = document.getElementById("step-count").value;
-			var generate_count = document.getElementById("generator-count").value;
-			current_to_gen = generate_count;
-			socket.emit("message", JSON.stringify(
-				{
-					"prompt": prompt,
-					"negative": negative,
-					"seed": seed,
-					"step_count": step_count,
-					"generate_count": generate_count
-				}
-			));
-
-			var imagesBlock = document.getElementById('images');
-			while (imagesBlock.firstChild) {
-				imagesBlock.removeChild(imagesBlock.firstChild);
-			}
-			imagesBlock.appendChild(createLoadingImage());
-		}
-
-		socket.on('open', function (event) {
-			console.log("WebSocket connected");
-		});
-
-		socket.on('close', function (event) {
-			console.log("WebSocket closed");
-		});
-
-		socket.on('error', function (event) {
-			console.log("WebSocket error: ${event}");
-		});
-
-		socket.on('message', function (message) {
-			if (message.image != '') {
-				current_to_gen -= 1;
-				var image = 'data:image/jpeg;base64,' + message.image;
-				var downloadA = document.createElement('a');
-				downloadA.href = image;
-				var messageImg = document.createElement('img');
-				messageImg.src = image;
-				messageImg.style = 'margin: 2px';
-				downloadA.appendChild(messageImg);
-				var imagesBlock = document.getElementById('images');
-				var loadingDiv = document.getElementById('loadingDiv');
-				if (loadingDiv != null) {
-					loadingDiv.parentNode.removeChild(loadingDiv);
-				}
-				imagesBlock.appendChild(downloadA);
-				if (current_to_gen > 0) {
-					imagesBlock.appendChild(loadingDiv);
-				}
-			}
-			var divQueueInfoDiv = document.getElementById('queue_length_info')
-			while (divQueueInfoDiv.firstChild) {
-				divQueueInfoDiv.removeChild(divQueueInfoDiv.firstChild)
-			}
-			var queueInfoSpan = document.createElement('span')
-			queueInfoSpan.textContent = "Messages in queue: " + message.queue_length
-			divQueueInfoDiv.appendChild(queueInfoSpan)
-		});
-
-		document.addEventListener('DOMContentLoaded', function () {
-			const generatorCountInput = document.getElementById('generator-count');
-			const generatorCountDisplay = document.getElementById('generator-count-display');
-			generatorCountInput.addEventListener('input', () => {
-				generatorCountDisplay.textContent = generatorCountInput.value;
-			});
-		});
-
-	</script>
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.4/font/bootstrap-icons.css">
+	<link href="/static/css/base.css" rel="stylesheet">
+	<script src="/static/js/common.js"></script>
+	<script src="/static/js/socket.js"></script>
+	<script src="/static/js/scripts.js"></script>
 </head>
 
 <body>
@@ -118,7 +27,7 @@
 					<div class="form-group">
 						<label for="prompt">Prompt</label>
 						<input type="text" class="form-control" id="prompt"
-							value="DSLR photo portrait of an amazing looking man in front of a computer, working on some matrix style code">
+							value="DSLR photo of an albatros, soaring through the clouds above the ocean, amazing light, award winning">
 					</div>
 				</div>
 				<div class="col-md-12">
@@ -142,7 +51,7 @@
 				<div class="col-md-6">
 					<div class="form-group">
 						<label for="step-count">Step Count</label>
-						<input type="number" class="form-control" id="step-count" value="60">
+						<input type="number" class="form-control" id="step-count" value="30">
 					</div>
 				</div>
 				<div class="col-md-6">
@@ -158,8 +67,8 @@
 						<div class="col-md-6">
 							<label for="generator-count">Generator Count</label>
 							<input type="range" class="form-control-range" id="generator-count" min="1" max="10"
-								value="4">
-							<span id="generator-count-display">4</span>
+								value="2">
+							<span id="generator-count-display">2</span>
 						</div>
 					</div>
 				</div>
@@ -168,7 +77,7 @@
 				<div class="col-md-6">
 					<button type="button" class="btn btn-primary btn-block" onclick="sendMessage()">Generate</button>
 				</div>
-				<div class="col-md-6" id="queue_length_info"><span>Messages in queue: ?</span></div>
+				<div class="col-md-6" id="queue_length_info"><span>Messages in queue: ?</span><button type="button" class="btn btn-outline-info" onclick="clearGenQueue()">Clear</button></div>
 			</div>
 		</form>
 

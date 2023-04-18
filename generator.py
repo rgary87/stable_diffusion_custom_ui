@@ -55,7 +55,7 @@ class Generator:
                 if os.path.exists(image_name):
                     image_name = image_name[:-4] + '(2).png'
                 image.save(image_name)
-                return image_name
+                return (image_name, seed+idx)
             except Exception as e:
                 print(f'Exception: {e}')
                 pass
