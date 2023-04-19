@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const generatorCountInput = document.getElementById('generator-count');
     const generatorCountDisplay = document.getElementById('generator-count-display');
     generatorCountInput.addEventListener('input', () => {
-        generatorCountDisplay.textContent = generatorCountInput.value;
+        generatorCountDisplay.value = generatorCountInput.value;
     });
 });
 

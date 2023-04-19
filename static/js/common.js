@@ -1,15 +1,19 @@
 function createLoadingImage() {
+    const existingElement = document.getElementById('loadingDiv');
+    if (existingElement !== null) {
+        return existingElement;
+    }
     const loadingDiv = document.createElement('div');
     loadingDiv.id = 'loadingDiv';
-    loadingDiv.classList = 'd-flex align-items-center justify-content-center col-md-4';
+    loadingDiv.classList = 'd-flex align-items-center justify-content-center';
     const spinner = document.createElement('div');
     spinner.classList = 'spinner-border text-primary';
     spinner.setAttribute('role', 'status');
-    const spanLoading = document.createElement('span');
-    spanLoading.classList = 'visually-hidden';
-    spanLoading.textContent = 'Loading...';
+    // const spanLoading = document.createElement('span');
+    // spanLoading.classList = 'visually-hidden';
+    // spanLoading.textContent = 'Loading...';
+    // spinner.appendChild(spanLoading);
     loadingDiv.appendChild(spinner);
-    spinner.appendChild(spanLoading);
     return loadingDiv;
 }
 
@@ -48,4 +52,11 @@ function b64toBlob(b64Data, contentType, sliceSize) {
 
     var blob = new Blob(byteArrays, { type: contentType });
     return blob;
+}
+
+function clearImages() {
+    const imagesBlock = document.getElementById('images');
+    while (imagesBlock.firstChild) {
+        imagesBlock.removeChild(imagesBlock.firstChild);
+    }
 }

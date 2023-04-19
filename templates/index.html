@@ -51,7 +51,7 @@
 				<div class="col-md-6">
 					<div class="form-group">
 						<label for="step-count">Step Count</label>
-						<input type="number" class="form-control" id="step-count" value="30">
+						<input type="number" class="form-control" id="step-count" value="50">
 					</div>
 				</div>
 				<div class="col-md-6">
@@ -62,22 +62,38 @@
 				</div>
 			</div>
 			<div class="row">
+				<div class="col-md-4">
+					<label for="generator-count" class="form-label">Generator Count</label>
+					<input type="range" class="form-range" id="generator-count" min="1" max="50" value="3">
+				</div>
+				<div class="col-md-1">
+					<label for="generator-count-display" class="form-label"></label>
+					<input type="number" class="form-control" id="generator-count-display" value="3" disabled>
+					<!-- <p id="generator-count-display">3</p> -->
+				</div>
+				<div class="col-md-1">
+				</div>
 				<div class="col-md-6">
-					<div class="form-group">
-						<div class="col-md-6">
-							<label for="generator-count">Generator Count</label>
-							<input type="range" class="form-control-range" id="generator-count" min="1" max="10"
-								value="2">
-							<span id="generator-count-display">2</span>
-						</div>
+					<label for="" class="form-label"></label>
+
+					<div class="col-md-6" id="queue_length_info">
+						<span id="queue_length_info_span">Messages in queue: ? </span>
+						<button type="button" class="btn btn-outline-info" onclick="clearGenQueue()">Clear
+							Queue</button>
 					</div>
 				</div>
 			</div>
 			<div class="row">
-				<div class="col-md-6">
+				<div class="col-md-2">
 					<button type="button" class="btn btn-primary btn-block" onclick="sendMessage()">Generate</button>
 				</div>
-				<div class="col-md-6" id="queue_length_info"><span>Messages in queue: ?</span><button type="button" class="btn btn-outline-info" onclick="clearGenQueue()">Clear</button></div>
+				<div class="col-md-3">
+					<button type="button" class="btn btn-warning btn-block" onclick="clearImages()">Clear All
+						Images</button>
+				</div>
+				<div class="col-md-3" id="loading_space">
+					
+				</div>
 			</div>
 		</form>
 

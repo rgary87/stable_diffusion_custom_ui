@@ -1,3 +1,4 @@
+import os
 import signal
 import threading
 import json
@@ -11,16 +12,16 @@ from flask_socketio import SocketIO
 gen = None
 app = Flask(__name__)
 socketio = SocketIO(app)
-in_process = False
+prompts = []
 
 def signal_handler(sig, frame):
     print("Vous avez appuyé sur CTRL+C!")
-    global in_process
-    global continue_processing
-    if in_process:
-        continue_processing = False
-    else:
-        exit(0)
+    global prompts
+    print(f'Prompts are: {prompts}')
+    with open('static/history', 'w') as history:
+        for p in prompts:
+            history.write(f'{p}\n')
+    exit(0)
 
 signal.signal(signal.SIGINT, signal_handler)
 
@@ -32,10 +33,17 @@ def broadcast_queue_lenght():
     fs.send({'queue_length': queue_length, 'image': ''}, broadcast=True)
 
 
+def add_prompt_to_history(prompt):
+    global prompts
+    if prompt not in prompts:
+        prompts.insert(0, prompt)
+
+
 def process_queue(message):
     global queue_length
     message = json.loads(message)
     prompt = message.get('prompt', '')
+    add_prompt_to_history(prompt=prompt)
     negative = message.get('negative', '')
     steps = int(message.get('step_count', '60'))
     seed = message.get('seed', random.randint(0, 99999999999999))
@@ -97,4 +105,10 @@ def handle_clear_queue():
     broadcast_queue_lenght()
 
 if __name__ == '__main__':
+    if not os.path.exists('static/history'):
+        with open('static/history', 'w'):
+            pass
+    with open('static/history', 'r') as history:
+        for p in history:
+            prompts.append(p)
     socketio.run(app, host='0.0.0.0', port=8000, debug=True)

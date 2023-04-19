@@ -1,7 +1,7 @@
 import torch, os, re, random
 from datetime import datetime
 from torch import autocast
-from diffusers import StableDiffusionPipeline, DPMSolverMultistepScheduler
+from diffusers import StableDiffusionPipeline, DPMSolverMultistepScheduler, EulerDiscreteScheduler
 from diffusers.pipelines.stable_diffusion import safety_checker
 
 class Generator:
@@ -12,10 +12,11 @@ class Generator:
         else:
             print('Shit fuck and bubblegum!')
             exit(255)
-        self.model_id = "stabilityai/stable-diffusion-2-1-base"
-        self.model_id = "prompthero/openjourney"
+        self.model_id = "stabilityai/stable-diffusion-2-1"
+        # self.model_id = "prompthero/openjourney"
         self.device = "cuda"
-        self.pipe = StableDiffusionPipeline.from_pretrained(self.model_id, torch_dtype=torch.float16)
+        self.scheduler = EulerDiscreteScheduler.from_pretrained(self.model_id, subfolder="scheduler")
+        self.pipe = StableDiffusionPipeline.from_pretrained(self.model_id, torch_dtype=torch.float16, scheduler=self.scheduler)
         self.dmp_scheduler = DPMSolverMultistepScheduler.from_config(self.pipe.scheduler.config)
         self.pipe = self.pipe.to(self.device)
         safety_checker.StableDiffusionSafetyChecker.forward = self.sc
@@ -45,7 +46,8 @@ class Generator:
             os.mkdir(today)
         dir_path = f"{today}\{dir_path}"
         with autocast(self.device):
-            prompt = f"mdjrny-v4 style, {prompt}"
+            if self.model_id == 'prompthero/openjourney':
+                prompt = f"mdjrny-v4 style, {prompt}"
             try:
                 generator = torch.Generator("cuda").manual_seed(seed+idx)
                 if not os.path.exists(dir_path):

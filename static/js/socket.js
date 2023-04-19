@@ -35,22 +35,16 @@ function sendMessage(prompt, negative, seed, step_count, generate_count) {
             "generate_count": generate_count
         }
     ));
-
-    var imagesBlock = document.getElementById('images');
-    while (imagesBlock.firstChild) {
-        imagesBlock.removeChild(imagesBlock.firstChild);
-    }
-    imagesBlock.appendChild(createLoadingImage());
+    displayLoading(createLoadingImage());
 }
 
-function displayLoading(imagesBlock) {
+function displayLoading(loadingDiv) {
     // Add loading animation if needed
-    var loadingDiv = document.getElementById('loadingDiv');
-    if (loadingDiv != null) {
+    if (loadingDiv != null && loadingDiv.parentNode != null) {
         loadingDiv.parentNode.removeChild(loadingDiv);
     }
     if (current_to_gen > 0) {
-        imagesBlock.appendChild(loadingDiv);
+        document.getElementById('loading_space').appendChild(loadingDiv);
     }
 }
 
@@ -69,7 +63,11 @@ function displayImage(message_image, message_seed) {
     imageLink.appendChild(imageTag)
     imageDivTag.appendChild(imageLink);
     imageDivTag.appendChild(imageSeedText);
-    imagesBlock.appendChild(imageDivTag)
+    if (imagesBlock.firstChild) {
+        imagesBlock.insertBefore(imageDivTag, imagesBlock.firstChild);
+    } else {
+        imagesBlock.appendChild(imageDivTag)
+    }
 
     imageLink.onclick = () => downloadImage(message_seed);
     imageLink.href = '#';
@@ -79,24 +77,12 @@ function displayImage(message_image, message_seed) {
     imageSeedText.innerHTML = message_seed + '<a href="#"><i class="bi bi-arrow-counterclockwise" onclick="reprocess('+message_seed+')"></i></a>'
     imageSeedText.classList = 'displaySeed';
 
-    displayLoading(imagesBlock)
+    displayLoading(createLoadingImage())
 }
 
 function updateQueueLength(l) {
-    var divQueueInfoDiv = document.getElementById('queue_length_info')
-    while (divQueueInfoDiv.firstChild) {
-        divQueueInfoDiv.removeChild(divQueueInfoDiv.firstChild)
-    }
-    var queueInfoSpan = document.createElement('span')
-    queueInfoSpan.textContent = "Messages in queue: " + l;
-    var clearQueueButton = document.createElement('button');
-    clearQueueButton.type = "button";
-    clearQueueButton.classList = "btn btn-outline-info";
-    clearQueueButton.style = "margin-left: 5px;"
-    clearQueueButton.onclick = () => {clearGenQueue()};
-    clearQueueButton.textContent = "Clear"
-    queueInfoSpan.appendChild(clearQueueButton);
-    divQueueInfoDiv.appendChild(queueInfoSpan)
+    var divQueueInfoSpan = document.getElementById('queue_length_info_span');
+    divQueueInfoSpan.textContent = "Messages in queue: " + l;
 }
 
 function clearGenQueue() {
