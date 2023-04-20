@@ -10,5 +10,7 @@ function reprocess(seed) {
     var prompt = document.getElementById("prompt").value;
     var negative = document.getElementById("negative").value;
     var step_count = document.getElementById("step-count").value;
-    sendMessage(prompt, negative, seed, step_count, '1')
+    var width = document.getElementById("width").value;
+    var heigth = document.getElementById("heigth").value;
+    sendMessage(prompt, negative, seed, step_count, '1', width, heigth)
 }

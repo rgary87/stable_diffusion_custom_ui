@@ -16,11 +16,6 @@ prompts = []
 
 def signal_handler(sig, frame):
     print("Vous avez appuyé sur CTRL+C!")
-    global prompts
-    print(f'Prompts are: {prompts}')
-    with open('static/history', 'w') as history:
-        for p in prompts:
-            history.write(f'{p}\n')
     exit(0)
 
 signal.signal(signal.SIGINT, signal_handler)
@@ -35,8 +30,12 @@ def broadcast_queue_lenght():
 
 def add_prompt_to_history(prompt):
     global prompts
+    print(f'Prompts are: {prompts}')
     if prompt not in prompts:
         prompts.insert(0, prompt)
+    with open('static/history', 'w') as history:
+        for p in prompts:
+            history.write(f'{p}\n')
 
 
 def process_queue(message):
@@ -47,6 +46,8 @@ def process_queue(message):
     negative = message.get('negative', '')
     steps = int(message.get('step_count', '60'))
     seed = message.get('seed', random.randint(0, 99999999999999))
+    width = int(message.get('width', 512))
+    heigth = int(message.get('heigth', 512))
     if seed == '' or type(seed) == str:
         seed = random.randint(0, 99999999999999)
     to_generate = int(message.get('generate_count', 4))
@@ -62,7 +63,7 @@ def process_queue(message):
             if queue_length <= 0:
                 queue_length = 0
                 break
-            (image_path, image_seed) = gen.generate_single(prompt=prompt, negative_prompt=negative, step=steps, seed=seed, dir_path=dir_path, idx=idx)
+            (image_path, image_seed) = gen.generate_single(prompt=prompt, negative_prompt=negative, step=steps, seed=seed, dir_path=dir_path, idx=idx, width=width, heigth=heigth)
             with open(image_path, "rb") as f:
                 image_data = f.read()
             image64 = base64.b64encode(image_data).decode('utf-8')
@@ -110,5 +111,6 @@ if __name__ == '__main__':
             pass
     with open('static/history', 'r') as history:
         for p in history:
-            prompts.append(p)
+            if p.strip() != '':
+                prompts.append(p.strip())
     socketio.run(app, host='0.0.0.0', port=8000, debug=True)

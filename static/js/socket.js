@@ -16,13 +16,15 @@ socket.on('message', function (message) {
     updateQueueLength(message.queue_length)
 });
 
-function sendMessage(prompt, negative, seed, step_count, generate_count) {
+function sendMessage(prompt, negative, seed, step_count, generate_count, width, heigth) {
     var prompt = prompt || document.getElementById("prompt").value;
     var negative = negative || document.getElementById("negative").value;
     if (document.getElementById('basicNeg').checked) {
         negative += ', disfigured, kitschy, ugly, oversaturated, low-res, deformed, blurry, extra lib, too many fingers'
     }
     var seed = seed || document.getElementById("seed").value;
+    var width = width || document.getElementById("width").value;
+    var heigth = heigth || document.getElementById("heigth").value;
     var step_count = step_count || document.getElementById("step-count").value;
     var generate_count = generate_count || document.getElementById("generator-count").value;
     current_to_gen = generate_count;
@@ -32,7 +34,9 @@ function sendMessage(prompt, negative, seed, step_count, generate_count) {
             "negative": negative,
             "seed": seed,
             "step_count": step_count,
-            "generate_count": generate_count
+            "generate_count": generate_count,
+            "width": width,
+            "heigth": heigth,
         }
     ));
     displayLoading(createLoadingImage());

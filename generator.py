@@ -6,18 +6,24 @@ from diffusers.pipelines.stable_diffusion import safety_checker
 
 class Generator:
 
+    def set_scheduler_for_model(self):
+        if self.model_id == "stabilityai/stable-diffusion-2-1":
+            self.pipe = StableDiffusionPipeline.from_pretrained(self.model_id, torch_dtype=torch.float16)
+            # self.pipe.scheduler = DPMSolverMultistepScheduler.from_config(self.pipe.scheduler.config) 
+        elif self.model_id == "prompthero/openjourney":
+            self.pipe = StableDiffusionPipeline.from_pretrained(self.model_id, torch_dtype=torch.float16)
+            # self.pipe.scheduler = EulerDiscreteScheduler.from_pretrained(self.model_id, subfolder="scheduler")
+
     def __init__(self) -> None:
         if torch.cuda.is_available():
             print('Everything is okay')
         else:
             print('Shit fuck and bubblegum!')
             exit(255)
-        self.model_id = "stabilityai/stable-diffusion-2-1"
-        # self.model_id = "prompthero/openjourney"
         self.device = "cuda"
-        self.scheduler = EulerDiscreteScheduler.from_pretrained(self.model_id, subfolder="scheduler")
-        self.pipe = StableDiffusionPipeline.from_pretrained(self.model_id, torch_dtype=torch.float16, scheduler=self.scheduler)
-        self.dmp_scheduler = DPMSolverMultistepScheduler.from_config(self.pipe.scheduler.config)
+        self.model_id = "stabilityai/stable-diffusion-2-1"
+        self.model_id = "prompthero/openjourney"
+        self.set_scheduler_for_model()
         self.pipe = self.pipe.to(self.device)
         safety_checker.StableDiffusionSafetyChecker.forward = self.sc
 
@@ -40,7 +46,7 @@ class Generator:
         return (positive_prompt, negative_prompt)
 
 
-    def generate_single(self, prompt, negative_prompt, step, seed, dir_path, idx):
+    def generate_single(self, prompt, negative_prompt, step, seed, dir_path, idx, width=512, heigth=512):
         today = datetime.today().strftime('%Y_%m_%d')
         if not os.path.exists(today):
             os.mkdir(today)
@@ -52,7 +58,7 @@ class Generator:
                 generator = torch.Generator("cuda").manual_seed(seed+idx)
                 if not os.path.exists(dir_path):
                     os.mkdir(dir_path)
-                image = self.pipe(prompt, negative_prompt=negative_prompt, guidance_scale=9, num_inference_steps=step, generator=generator).images[0]
+                image = self.pipe(prompt, negative_prompt=negative_prompt, guidance_scale=9, num_inference_steps=step, generator=generator, width=width, height=heigth).images[0]
                 image_name = f'{dir_path}\\{idx}_{step}_{prompt.replace(" ", "_").replace(",", "").replace("|", "").replace(":", "").replace(".", "")[:120]}.png'
                 if os.path.exists(image_name):
                     image_name = image_name[:-4] + '(2).png'
