@@ -87,6 +87,7 @@ function displayImage(message_image, message_seed) {
 function updateQueueLength(l) {
     var divQueueInfoSpan = document.getElementById('queue_length_info_span');
     divQueueInfoSpan.textContent = "Messages in queue: " + l;
+    current_to_gen = l
 }
 
 function clearGenQueue() {
