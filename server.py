@@ -45,11 +45,13 @@ def process_queue(message):
     add_prompt_to_history(prompt=prompt)
     negative = message.get('negative', '')
     steps = int(message.get('step_count', '60'))
-    seed = int(message.get('seed', random.randint(0, 99999999999999)))
+    seed = message.get('seed', '')
     width = int(message.get('width', 512))
     heigth = int(message.get('heigth', 512))
-    if seed == '' or type(seed) == str:
+    if seed == '':
         seed = random.randint(0, 99999999999999)
+    else:
+        seed = int(seed)
     to_generate = int(message.get('generate_count', 4))
     queue_length += to_generate
     broadcast_queue_lenght()

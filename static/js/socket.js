@@ -73,10 +73,12 @@ function displayImage(message_image, message_seed) {
         imagesBlock.appendChild(imageDivTag)
     }
 
-    imageLink.onclick = () => downloadImage(message_seed);
+    const id = message_seed + randomString(10)
+
+    imageLink.onclick = () => downloadImage(id);
     imageLink.href = '#';
     imageTag.src = imageb64;
-    imageTag.id = message_seed
+    imageTag.id = id
     imageTag.style = 'margin: 2px';
     imageSeedText.innerHTML = message_seed + '<a href="#"><i class="bi bi-arrow-counterclockwise" onclick="reprocess('+message_seed+')"></i></a>'
     imageSeedText.classList = 'displaySeed';
